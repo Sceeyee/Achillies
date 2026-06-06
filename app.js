@@ -351,7 +351,7 @@ Respond ONLY with this exact JSON — nothing before or after:
         ...imageBlocks,
         { type:'text', text:`Analyze under ${div.label} standards and return the JSON report.` }
       ]}],
-      max_tokens: 1800
+      max_tokens: 1200
     });
 
     clearInterval(iv);
