@@ -172,16 +172,18 @@ function selectDiv(card) {
 
 // ── SHOW DATE ─────────────────────────────────────────────────────────────────
 function toggleShowDate() {
-  const checked = document.getElementById('hasShowChk').checked;
-  document.getElementById('showDateFields').classList.toggle('visible', checked);
+  const chkEl = document.getElementById('hasShowChk');
+  if (!chkEl) return;
+  const checked = chkEl.checked;
+  document.getElementById('showDateFields')?.classList.toggle('visible', checked);
   if (!checked) { S.showDate=null; S.showName=''; }
 }
 
 function readShowDate() {
-  const chk = document.getElementById('hasShowChk').checked;
-  if (!chk) { S.showDate=null; S.showName=''; return; }
-  const dateVal = document.getElementById('showDateInput').value;
-  S.showName = document.getElementById('showNameInput').value.trim() || 'Your Show';
+  const chkEl = document.getElementById('hasShowChk');
+  if (!chkEl || !chkEl.checked) { S.showDate=null; S.showName=''; return; }
+  const dateVal = document.getElementById('showDateInput')?.value;
+  S.showName = document.getElementById('showNameInput')?.value.trim() || 'Your Show';
   S.showDate = dateVal ? new Date(dateVal+'T12:00:00') : null;
 }
 
