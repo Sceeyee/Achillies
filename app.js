@@ -351,7 +351,7 @@ Respond ONLY with this exact JSON — nothing before or after:
         ...imageBlocks,
         { type:'text', text:`Analyze under ${div.label} standards and return the JSON report.` }
       ]}],
-      max_tokens: 1200
+      max_tokens: 1800
     });
 
     clearInterval(iv);
@@ -360,7 +360,10 @@ Respond ONLY with this exact JSON — nothing before or after:
     const raw = body.content[0].text.trim();
     let report;
     try {
-      report = JSON.parse(raw.replace(/^```json\s*/i,'').replace(/```\s*$/,'').trim());
+      // Extract the JSON object — handles markdown fences or stray text around it
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('no JSON object found');
+      report = JSON.parse(jsonMatch[0]);
     } catch { throw new Error('Could not parse analysis response. Please try again.'); }
 
     report._division = S.division;
