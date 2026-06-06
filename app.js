@@ -269,32 +269,40 @@ async function callClaude({ system, messages, max_tokens=1500 }) {
 
 // ── ANALYSIS ──────────────────────────────────────────────────────────────────
 async function startAnalysis() {
-  const errEl = document.getElementById('step2Error');
-  errEl.classList.remove('visible');
-
-  const hasImage = S.images.front || S.images.side || S.images.back;
-  if (!hasImage) { errEl.textContent='Please upload at least one photo.'; errEl.classList.add('visible'); return; }
-
-  const apiKey = getApiKey();
-  if (!IS_NETLIFY && !apiKey) { errEl.textContent='Please enter your Anthropic API key.'; errEl.classList.add('visible'); return; }
-
-  readShowDate();
-
-  if (document.getElementById('rememberKey').checked && S.user) {
-    await saveUserData({ ...S.user.data, savedApiKey: apiKey });
-  }
-
-  ['step1','step2','step3'].forEach(id => document.getElementById(id).style.display='none');
+  const errEl  = document.getElementById('step2Error');
   const loadEl = document.getElementById('loadingScreen');
-  loadEl.classList.add('active');
+  let iv = null;
 
-  const msgs = ['Analyzing Physique','Evaluating Proportions','Mapping Muscle Groups','Compiling Report'];
-  let mi=0;
-  const lt = document.getElementById('loadingText');
-  const iv = setInterval(() => { mi=(mi+1)%msgs.length; lt.textContent=msgs[mi]; }, 2200);
+  const showErr = (msg) => {
+    if (errEl) { errEl.textContent = msg; errEl.classList.add('visible'); }
+    else alert('Achilles error: ' + msg);
+  };
 
   try {
+    if (errEl) errEl.classList.remove('visible');
+
+    const hasImage = S.images.front || S.images.side || S.images.back;
+    if (!hasImage) { showErr('Please upload at least one photo.'); return; }
+
+    const apiKey = getApiKey();
+    if (!IS_NETLIFY && !apiKey) { showErr('Please enter your Anthropic API key.'); return; }
+
+    readShowDate();
+
+    if (document.getElementById('rememberKey')?.checked && S.user) {
+      await saveUserData({ ...S.user.data, savedApiKey: apiKey });
+    }
+
+    ['step1','step2','step3'].forEach(id => document.getElementById(id).style.display='none');
+    if (loadEl) loadEl.classList.add('active');
+
+    const msgs = ['Analyzing Physique','Evaluating Proportions','Mapping Muscle Groups','Compiling Report'];
+    let mi = 0;
+    const lt = document.getElementById('loadingText');
+    iv = setInterval(() => { mi=(mi+1)%msgs.length; if (lt) lt.textContent=msgs[mi]; }, 2200);
+
     const div = DIVISIONS[S.division];
+    if (!div) throw new Error('No division selected. Please go back and pick a division.');
     const days = daysUntilShow();
 
     const imageBlocks = [];
@@ -347,12 +355,13 @@ Respond ONLY with this exact JSON — nothing before or after:
     });
 
     clearInterval(iv);
+    iv = null;
 
     const raw = body.content[0].text.trim();
     let report;
     try {
       report = JSON.parse(raw.replace(/^```json\s*/i,'').replace(/```\s*$/,'').trim());
-    } catch { throw new Error('Could not parse analysis. Please try again.'); }
+    } catch { throw new Error('Could not parse analysis response. Please try again.'); }
 
     report._division = S.division;
     report._showDate = S.showDate ? S.showDate.toISOString() : null;
@@ -367,15 +376,14 @@ Respond ONLY with this exact JSON — nothing before or after:
     ];
 
     renderReport(report);
-    loadEl.classList.remove('active');
+    if (loadEl) loadEl.classList.remove('active');
     showStep(3);
 
   } catch(e) {
-    clearInterval(iv);
-    loadEl.classList.remove('active');
+    if (iv) { clearInterval(iv); iv = null; }
+    if (loadEl) loadEl.classList.remove('active');
     showStep(2);
-    errEl.textContent = 'Error: '+e.message;
-    errEl.classList.add('visible');
+    showErr('Error: ' + e.message);
   }
 }
 
