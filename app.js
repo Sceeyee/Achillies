@@ -204,7 +204,7 @@ function loadImage(event, previewId, zoneId, key) {
     img.style.display = 'block';
     document.getElementById(zoneId).classList.add('loaded');
     // Resize to ≤1568px on long edge before storing (faster + cheaper)
-    resizeImage(e.target.result, 1568).then(resized => { S.images[key] = resized; });
+    resizeImage(e.target.result, 900).then(resized => { S.images[key] = resized; });
   };
   reader.readAsDataURL(file);
 }
@@ -218,7 +218,7 @@ function resizeImage(dataUrl, maxPx) {
       canvas.width  = Math.round(img.width  * scale);
       canvas.height = Math.round(img.height * scale);
       canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/jpeg', 0.88));
+      resolve(canvas.toDataURL('image/jpeg', 0.80));
     };
     img.src = dataUrl;
   });
@@ -243,7 +243,7 @@ async function callClaude({ system, messages, max_tokens=1500 }) {
     const r = await fetch(ENDPOINT, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ system, messages, max_tokens, model: 'claude-opus-4-6' })
+      body: JSON.stringify({ system, messages, max_tokens, model: 'claude-sonnet-4-6' })
     });
     if (!r.ok) {
       const e = await r.json().catch(() => ({}));

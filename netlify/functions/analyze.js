@@ -38,7 +38,7 @@ exports.handler = async (event) => {
 
   try {
     const body = JSON.parse(event.body);
-    const { system, messages, max_tokens = 1500, model = 'claude-opus-4-6' } = body;
+    const { system, messages, max_tokens = 1500, model = 'claude-sonnet-4-6' } = body;
     const payload = JSON.stringify({ model, max_tokens, system, messages });
 
     const result = await httpsPost({
