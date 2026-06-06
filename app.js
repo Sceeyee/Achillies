@@ -357,14 +357,14 @@ Respond ONLY with this exact JSON — nothing before or after:
     clearInterval(iv);
     iv = null;
 
-    const raw = body.content[0].text.trim();
+    const raw = (body.content && body.content[0] && body.content[0].text || '').trim();
+    if (!raw) throw new Error('Empty response from AI. Full body: ' + JSON.stringify(body).slice(0, 200));
     let report;
     try {
-      // Extract the JSON object — handles markdown fences or stray text around it
       const jsonMatch = raw.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('no JSON object found');
+      if (!jsonMatch) throw new Error('No JSON found. Response started with: ' + raw.slice(0, 150));
       report = JSON.parse(jsonMatch[0]);
-    } catch { throw new Error('Could not parse analysis response. Please try again.'); }
+    } catch(parseErr) { throw new Error('Parse failed: ' + parseErr.message + ' | Response: ' + raw.slice(0, 200)); }
 
     report._division = S.division;
     report._showDate = S.showDate ? S.showDate.toISOString() : null;
